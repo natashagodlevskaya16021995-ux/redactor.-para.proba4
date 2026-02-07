@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Master Editor V21 - Fix Traps</title>
+    <style>
+        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #121212; color: white; }
+        #ed { width: 450px; padding: 20px; overflow-y: auto; background: #1e1e1e; border-right: 2px solid #333; box-sizing: border-box; }
+        .box { background: #252525; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #333; }
+        h3 { font-size: 11px; color: #03dac6; text-transform: uppercase; margin: 0 0 10px 0; }
+        label { display: block; font-size: 10px; color: #888; margin-top: 8px; }
+        input, select, button, textarea { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #444; background: #121212; color: white; box-sizing: border-box; }
+        .pair { display: flex; gap: 5px; margin-top: 5px; }
+        .btn-gen { background: #bb86fc; color: #000; font-weight: bold; margin-top: 20px; cursor: pointer; height: 45px; border: none; }
+        .btn-del { width: 30px !important; background: #cf667922; color: #cf6679; border: 1px solid #cf6679; }
+        #pre { flex-grow: 1; background: #000; display: flex; flex-direction: column; }
+        iframe { width: 100%; height: 100%; border: none; flex-grow: 1; }
+        textarea#res { height: 80px; font-size: 10px; background: #000; color: #0f0; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div id="ed">
+    <div class="box" style="border-left: 3px solid #bb86fc;">
+        <h3>👋 Экран приветствия</h3>
+        <label>Заголовок</label>
+        <input type="text" id="st_t" value="Добро пожаловать">
+        <label>Инструкция</label>
+        <textarea id="st_d" style="height:40px">Найди все пары!</textarea>
+        <label>Текст кнопки старта</label>
+        <input type="text" id="st_b" value="ИГРАТЬ">
+    </div>
+
+    <div class="box">
+        <h3>🦋 Вид карточки</h3>
+        <label>Размер карточки (px)</label>
+        <input type="number" id="csize" value="140">
+        
+        <label style="color:#03dac6; margin-top:10px">ВАРИАНТ 1: Картинка фона (Если есть - рамка отключится)</label>
+        <input type="text" id="cimg" placeholder="URL картинки (например бабочка)">
+
+        <label style="color:#bb86fc; margin-top:15px">ВАРИАНТ 2: Стильная рамка (Работает, если нет картинки)</label>
+        <div class="pair">
+            <div style="flex:1"><label>Цвет фона</label><input type="color" id="bg_c_pick" value="#1e1e1e"></div>
+            <div style="flex:1"><label>Прозрачность (0-1)</label><input type="number" id="bg_op" value="0.8" step="0.1" max="1" min="0"></div>
+        </div>
+        <div class="pair">
+            <div style="flex:1"><label>Цвет рамки</label><input type="color" id="b_c" value="#ffffff"></div>
+            <div style="flex:1"><label>Толщина</label><input type="number" id="b_w" value="2"></div>
+        </div>
+        <label>Закругление углов</label>
+        <input type="number" id="b_r" value="15">
+    </div>
+
+    <div class="box">
+        <h3>🎨 Шрифт и текст</h3>
+        <label>Google Font Name</label>
+        <input type="text" id="font" value="Oswald">
+        <div class="pair">
+            <div style="flex:1"><label>Кегель (px)</label><input id="fsize" value="25px"></div>
+            <div style="flex:1"><label>Цвет текста</label><input type="color" id="fcolor" value="#ffffff"></div>
+        </div>
+        <label>Эффект</label>
+        <select id="effect">
+            <option value="">Нет</option>
+            <option value="font-effect-neon">Неон</option>
+            <option value="font-effect-3d">3D</option>
+        </select>
+    </div>
+
+    <div class="box">
+        <h3>🎮 Игровой баланс</h3>
+        <div class="pair">
+            <div style="flex:1"><label>Пар в игре</label><input type="number" id="limit" value="2"></div>
+            <div style="flex:1"><label>Пустышек</label><input type="number" id="extra-count" value="2"></div>
+        </div>
+        <label>Скорость</label>
+        <input type="range" id="speed" min="0" max="10" step="0.5" value="2">
+    </div>
+
+    <div class="box">
+        <h3>🎵 Звуки (Опционально)</h3>
+        <label>Клик (URL mp3)</label><input type="text" id="s_click" placeholder="Пусто = Стандарт">
+        <label>Пара найдена (URL mp3)</label><input type="text" id="s_ok" placeholder="Пусто = Стандарт">
+        <label>Ошибка (URL mp3)</label><input type="text" id="s_bad" placeholder="Пусто = Стандарт">
+        <label>Победа (URL mp3)</label><input type="text" id="s_win" placeholder="Пусто = Стандарт">
+        <label>Проигрыш (URL mp3)</label><input type="text" id="s_lose" placeholder="Пусто = Стандарт">
+    </div>
+
+    <div class="box">
+        <h3>🖼 Интерфейс</h3>
+        <label>Жизнь (URL)</label><input type="text" id="lifeimg" placeholder="Пусто = Стандарт из кода">
+        <div class="pair"><input id="winimg" placeholder="Всплывашка Успех (или пусто)"><input id="loseimg" placeholder="Всплывашка Ошибка (или пусто)"></div>
+        <label>Цвет прогресса</label><input type="color" id="pcolor" value="#03dac6">
+    </div>
+
+    <div class="box" style="border-left: 3px solid #03dac6;">
+        <h3>🏆 Настройки Финала</h3>
+        <label>Победа: Заголовок / Текст / Картинка (URL)</label>
+        <input id="wt" value="Победа!">
+        <input id="wd" value="Ты супер!">
+        <input id="wi" placeholder="URL картинки или Пусто для стандарта">
+
+        <label style="margin-top:15px">Проигрыш: Заголовок / Текст / Картинка (URL)</label>
+        <input id="lt" value="Ой!">
+        <input id="ld" value="Попробуй еще раз">
+        <input id="li" placeholder="URL картинки или Пусто для стандарта">
+
+        <label>Текст кнопки перезапуска</label>
+        <input id="rb" value="ЗАНОВО">
+    </div>
+
+    <div class="box">
+        <h3>📝 База пар (Текст или Картинка URL)</h3>
+        <div id="p-cont">
+            <div class="pair"><input class="pa" placeholder="Текст или ссылка на картинку"><input class="pb" placeholder="Текст или ссылка на картинку"><button class="btn-del" onclick="this.parentElement.remove()">×</button></div>
+        </div>
+        <button onclick="addP()" style="margin-top:10px; border: 1px solid #03dac6; color: #03dac6;">+ Добавить в базу</button>
+    </div>
+
+    <button class="btn-gen" onclick="update()">ОБНОВИТЬ И ПОЛУЧИТЬ КОД</button>
+    <textarea id="res" readonly></textarea>
+</div>
+<div id="pre"><iframe id="ifr"></iframe></div>
+
+<script>
+    function addP() {
+        const d = document.createElement('div'); d.className = 'pair';
+        d.innerHTML = '<input class="pa" placeholder="Текст или URL картинки"><input class="pb" placeholder="Текст или URL картинки"><button class="btn-del" onclick="this.parentElement.remove()">×</button>';
+        document.getElementById('p-cont').appendChild(d);
+    }
+
+    // Хелпер для конвертации hex в rgba
+    function hexToRgba(hex, alpha) {
+        let c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+            c = hex.substring(1).split('');
+            if(c.length === 3){ c= [c[0], c[0], c[1], c[1], c[2], c[2]]; }
+            c= '0x'+c.join('');
+            return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+        }
+        return hex;
+    }
+
+    function update() {
+        let full = [];
+
+        document.querySelectorAll('#p-cont .pair').forEach(p => {
+            const a = p.querySelector('.pa')?.value.trim();
+            const b = p.querySelector('.pb')?.value.trim();
+            if(a && b) full.push({a, b});
+        });
+
+        const limit = parseInt(document.getElementById('limit').value) || full.length;
+        const extraCount = parseInt(document.getElementById('extra-count').value) || 0;
+
+        // Собираем цвет фона с прозрачностью
+        const bgHex = document.getElementById('bg_c_pick').value;
+        const bgOp = document.getElementById('bg_op').value;
+        const finalBg = hexToRgba(bgHex, bgOp);
+
+        // ✅ repo para.proba4
+        const url = "https://natashagodlevskaya16021995-ux.github.io/para.proba4/index.html";
+
+        const p = new URLSearchParams({
+            st_t: document.getElementById('st_t').value,
+            st_d: document.getElementById('st_d').value,
+            st_b: document.getElementById('st_b').value,
+            wt: document.getElementById('wt').value,
+            wd: document.getElementById('wd').value,
+            wi: document.getElementById('wi').value,
+            lt: document.getElementById('lt').value,
+            ld: document.getElementById('ld').value,
+            li: document.getElementById('li').value,
+            rb: document.getElementById('rb').value,
+
+            speed: document.getElementById('speed').value,
+            pcolor: document.getElementById('pcolor').value,
+            
+            // Настройки стиля
+            cimg: document.getElementById('cimg').value,
+            csize: document.getElementById('csize').value,
+            bg_c: finalBg,
+            b_c: document.getElementById('b_c').value,
+            b_w: document.getElementById('b_w').value,
+            b_r: document.getElementById('b_r').value,
+
+            font: document.getElementById('font').value,
+            fsize: document.getElementById('fsize').value,
+            fcolor: document.getElementById('fcolor').value,
+            effect: document.getElementById('effect').value,
+            lifeimg: document.getElementById('lifeimg').value,
+            winimg: document.getElementById('winimg').value,
+            loseimg: document.getElementById('loseimg').value,
+            
+            // Звуки
+            s_click: document.getElementById('s_click').value,
+            s_ok: document.getElementById('s_ok').value,
+            s_bad: document.getElementById('s_bad').value,
+            s_win: document.getElementById('s_win').value,
+            s_lose: document.getElementById('s_lose').value,
+
+            pairs: JSON.stringify(full),
+            limit: String(limit),
+            extraCount: String(extraCount)
+        });
+
+        const finalUrl = url + "?" + p.toString();
+        document.getElementById('ifr').src = finalUrl + "&t=" + Date.now();
+        document.getElementById('res').value = `<iframe src="${finalUrl}" width="100%" height="600" style="border:none;" allowtransparency="true"></iframe>`;
+    }
+</script>
+</body>
+</html>
