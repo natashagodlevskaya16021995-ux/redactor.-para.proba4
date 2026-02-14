@@ -2,134 +2,262 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Master Editor V21 - Fix Traps</title>
+    <title>Master Editor V34 - Custom Levels</title>
     <style>
-        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: #121212; color: white; }
-        #ed { width: 450px; padding: 20px; overflow-y: auto; background: #1e1e1e; border-right: 2px solid #333; box-sizing: border-box; }
-        .box { background: #252525; padding: 15px; border-radius: 8px; margin-bottom: 12px; border: 1px solid #333; }
-        h3 { font-size: 11px; color: #03dac6; text-transform: uppercase; margin: 0 0 10px 0; }
-        label { display: block; font-size: 10px; color: #888; margin-top: 8px; }
-        input, select, button, textarea { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #444; background: #121212; color: white; box-sizing: border-box; }
-        .pair { display: flex; gap: 5px; margin-top: 5px; }
-        .btn-gen { background: #bb86fc; color: #000; font-weight: bold; margin-top: 20px; cursor: pointer; height: 45px; border: none; }
-        .btn-del { width: 30px !important; background: #cf667922; color: #cf6679; border: 1px solid #cf6679; }
-        #pre { flex-grow: 1; background: #000; display: flex; flex-direction: column; }
-        iframe { width: 100%; height: 100%; border: none; flex-grow: 1; }
-        textarea#res { height: 80px; font-size: 10px; background: #000; color: #0f0; margin-top: 10px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; margin: 0; display: flex; height: 100vh; background: #f2f2f7; color: #1c1c1e; }
+        #ed { width: 450px; display: flex; flex-direction: column; background: #ffffff; border-right: 1px solid #d1d1d6; z-index: 10; box-shadow: 4px 0 15px rgba(0,0,0,0.03); }
+        .header { padding: 20px 25px 15px; }
+        .header h1 { font-size: 22px; margin: 0; font-weight: 700; }
+        .header p { margin: 5px 0 0 0; font-size: 13px; color: #8e8e93; }
+        .tabs { display: flex; padding: 0 20px; border-bottom: 1px solid #e5e5ea; }
+        .tab-btn { flex: 1; padding: 12px 0; border: none; background: transparent; font-size: 13px; font-weight: 600; color: #8e8e93; cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; }
+        .tab-btn.active { color: #007aff; border-bottom-color: #007aff; }
+        .scroll-area { flex-grow: 1; overflow-y: auto; padding: 20px 25px; background: #f2f2f7; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .box { background: #ffffff; padding: 20px; border-radius: 18px; margin-bottom: 15px; border: 1px solid #e5e5ea; }
+        h3 { font-size: 11px; font-weight: 700; color: #8e8e93; text-transform: uppercase; margin: 0 0 15px 0; }
+        label { display: block; font-size: 12px; font-weight: 500; color: #3a3a3c; margin-top: 12px; }
+        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 10px; border-radius: 12px; border: 1px solid #d1d1d6; background: #fff; font-size: 14px; outline: none; margin-top: 5px; box-sizing: border-box; }
+        input:focus { border-color: #007aff; }
+        input[type="color"] { width: 100%; height: 40px; border: none; background: none; cursor: pointer; padding: 0; margin-top: 5px; }
+        .check-wrap { display: flex; align-items: center; gap: 10px; margin-top: 15px; background: #f9f9f9; padding: 12px; border-radius: 12px; border: 1px solid #e5e5ea; cursor: pointer; }
+        .check-wrap input { transform: scale(1.2); accent-color: #007aff; }
+        .pair { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-add { background: #eef2ff; color: #007aff; border: 1px solid #007aff; font-weight: 600; padding: 12px; width: 100%; border-radius: 12px; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+        .btn-add:hover { background: #007aff; color: #fff; }
+        .btn-del { width: 40px !important; background: #fff2f2; color: #ff3b30; border: 1px solid #ff3b30; border-radius: 10px; cursor: pointer; }
+        .footer { padding: 20px 25px; background: #fff; border-top: 1px solid #e5e5ea; }
+        .btn-gen { background: linear-gradient(135deg, #007aff, #005ecb); color: white; font-weight: 600; font-size: 15px; cursor: pointer; height: 55px; border: none; width: 100%; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,122,255,0.3); }
+        textarea#res { height: 60px; font-family: monospace; font-size: 11px; margin-top: 10px; border: none; background: #1c1c1e; color: #00c7be; padding: 10px; border-radius: 10px; width: 100%; box-sizing: border-box; }
+        #pre { flex-grow: 1; background: #e5e5ea; padding: 20px; display: flex; align-items: center; justify-content: center; }
+        .preview-frame { width: 100%; height: 100%; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 8px solid #333; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        #live-preview-container {
+            width: 100%; height: 180px;
+            background-color: #eee;
+            background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), linear-gradient(-45deg, #ccc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ccc 75%), linear-gradient(-45deg, transparent 75%, #ccc 75%);
+            background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 1px solid #ccc; overflow: hidden;
+        }
+        #preview-card {
+            display: flex; align-items: center; justify-content: center; text-align: center; box-sizing: border-box;
+            background-size: contain; background-repeat: no-repeat; background-position: center; transition: 0.1s; user-select: none;
+        }
     </style>
 </head>
 <body>
 <div id="ed">
-    <div class="box" style="border-left: 3px solid #bb86fc;">
-        <h3>👋 Экран приветствия</h3>
-        <label>Заголовок</label>
-        <input type="text" id="st_t" value="Добро пожаловать">
-        <label>Инструкция</label>
-        <textarea id="st_d" style="height:40px">Найди все пары!</textarea>
-        <label>Текст кнопки старта</label>
-        <input type="text" id="st_b" value="ИГРАТЬ">
+    <div class="header">
+        <h1>Редактор Игры 🧩</h1>
+        <p>Настройка уровней</p>
     </div>
 
-    <div class="box">
-        <h3>🦋 Вид карточки</h3>
-        <label>Размер карточки (px)</label>
-        <input type="number" id="csize" value="140">
-        
-        <label style="color:#03dac6; margin-top:10px">ВАРИАНТ 1: Картинка фона (Если есть - рамка отключится)</label>
-        <input type="text" id="cimg" placeholder="URL картинки (например бабочка)">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('content')">📝 Контент</button>
+        <button class="tab-btn" onclick="openTab('design')">🎨 Дизайн карточек</button> <button class="tab-btn" onclick="openTab('texts')">💬 Интерфейс</button> <button class="tab-btn" onclick="openTab('sounds')">🎵 Звуки</button>
+    </div>
 
-        <label style="color:#bb86fc; margin-top:15px">ВАРИАНТ 2: Стильная рамка (Работает, если нет картинки)</label>
-        <div class="pair">
-            <div style="flex:1"><label>Цвет фона</label><input type="color" id="bg_c_pick" value="#1e1e1e"></div>
-            <div style="flex:1"><label>Прозрачность (0-1)</label><input type="number" id="bg_op" value="0.8" step="0.1" max="1" min="0"></div>
+    <div class="scroll-area">
+        <div id="tab-content" class="tab-content active">
+            <div class="box">
+                <h3>📋 Массовая вставка</h3>
+                <p style="font-size:11px; color:#888; margin-top:0">Формат: Слово | Перевод</p>
+                <textarea id="bulk-text" style="height:100px" placeholder="Кот | Cat&#10;Собака | Dog"></textarea>
+                <button class="btn-add" style="background:#34c759; border-color:#34c759; color:white; margin-top:10px" onclick="bulkImport()">📥 Вставить список</button>
+            </div>
+            <div class="box">
+                <h3>⏱ Настройки игры</h3>
+                <div class="check-wrap" onclick="let i=this.querySelector('input'); i.checked=!i.checked; toggleLevelInput()">
+                    <input type="checkbox" id="campaign">
+                    <label>📈 Режим Кампании (Уровни)</label>
+                </div>
+                
+                <div id="level-set" style="display:none; margin-top:10px;">
+                    <label>Количество уровней (Макс)</label>
+                    <input type="number" id="levels_count" value="5" placeholder="Например: 5">
+                </div>
+                
+                <div class="check-wrap" onclick="let i=this.querySelector('input'); i.checked=!i.checked; toggleTimerInput()">
+                    <input type="checkbox" id="use_timer">
+                    <label>Включить таймер</label>
+                </div>
+                <div id="timer-set" style="display:none; margin-top:10px;">
+                    <label>Время на игру (секунд)</label>
+                    <input type="number" id="time_val" value="60">
+                </div>
+                
+                <div class="pair">
+                    <div style="flex:1"><label>Пар (Старт)</label><input type="number" id="limit" value="2"></div>
+                    <div style="flex:1"><label>Ловушек</label><input type="number" id="extra-count" value="2"></div>
+                </div>
+                <label>Скорость полета</label>
+                <input type="range" id="speed" min="0" max="10" step="0.5" value="2">
+            </div>
+            <div class="box">
+                <h3>🧩 База пар</h3>
+                <div id="p-cont">
+                    <div class="pair"><input class="pa" placeholder="Пара А"><input class="pb" placeholder="Пара Б"><button class="btn-del" onclick="this.parentElement.remove()">×</button></div>
+                </div>
+                <button class="btn-add" onclick="addP()">+ Добавить пару</button>
+            </div>
         </div>
-        <div class="pair">
-            <div style="flex:1"><label>Цвет рамки</label><input type="color" id="b_c" value="#ffffff"></div>
-            <div style="flex:1"><label>Толщина</label><input type="number" id="b_w" value="2"></div>
+
+        <div id="tab-design" class="tab-content">
+            <div class="box">
+                <h3>🦋 Карточки</h3>
+                <label>Размер (px)</label><input type="number" id="csize" value="140" oninput="updPrev()">
+                <div class="check-wrap" onclick="let i=this.querySelector('input'); i.checked=!i.checked; updPrev()">
+                    <input type="checkbox" id="def_bg">
+                    <label>Синяя бабочка (стандартный фон)</label>
+                </div>
+                <label style="margin-top:15px">Свой фон (URL):</label><input type="text" id="cimg" placeholder="http://..." oninput="updPrev()">
+                
+                <label>Цвет/Рамка (если нет фона):</label>
+                <div class="pair">
+                    <input type="color" id="bg_c_pick" value="#ffffff" oninput="updPrev()"><input type="number" id="bg_op" value="0.9" step="0.1" max="1" oninput="updPrev()">
+                </div>
+                <div class="pair">
+                    <input type="color" id="b_c" value="#e5e5ea" oninput="updPrev()"><input type="number" id="b_w" value="1" oninput="updPrev()">
+                </div>
+            </div>
+
+            <div class="box">
+                <h3>🔤 Текст и Позиция</h3>
+                <div id="live-preview-container">
+                    <div id="preview-card"><span id="preview-text">Текст</span></div>
+                </div>
+                
+                <label>Google Font</label><input type="text" id="font" value="Nunito" oninput="updPrev()">
+                <div class="pair"><input id="fsize" value="28px" oninput="updPrev()"><input type="color" id="fcolor" value="#333333" oninput="updPrev()"></div>
+                
+                <label style="color:#007aff; margin-top:15px;">Смещение текста</label>
+                <div class="pair">
+                    <div style="flex:1; text-align:center;">
+                        <span style="font-size:10px; color:#888;">X (Влево/Вправо)</span>
+                        <input type="range" id="tx" min="-60" max="60" value="0" oninput="updPrev()">
+                    </div>
+                    <div style="flex:1; text-align:center;">
+                        <span style="font-size:10px; color:#888;">Y (Вверх/Вниз)</span>
+                        <input type="range" id="ty" min="-60" max="60" value="0" oninput="updPrev()">
+                    </div>
+                </div>
+
+                <label>Эффект</label>
+                <select id="effect" onchange="updPrev()"><option value="">Нет</option><option value="font-effect-neon">Неон</option><option value="font-effect-3d">3D</option></select>
+            </div>
         </div>
-        <label>Закругление углов</label>
-        <input type="number" id="b_r" value="15">
-    </div>
 
-    <div class="box">
-        <h3>🎨 Шрифт и текст</h3>
-        <label>Google Font Name</label>
-        <input type="text" id="font" value="Oswald">
-        <div class="pair">
-            <div style="flex:1"><label>Кегель (px)</label><input id="fsize" value="25px"></div>
-            <div style="flex:1"><label>Цвет текста</label><input type="color" id="fcolor" value="#ffffff"></div>
+        <div id="tab-texts" class="tab-content">
+            <div class="box">
+                <h3>👋 Приветствие</h3>
+                <input type="text" id="st_t" value="Найди пары">
+                <textarea id="st_d" style="height:50px">Будь осторожен, есть лишние карточки.</textarea> <label>Кнопка</label><input type="text" id="st_b" value="ИГРАТЬ">
+            </div>
+            
+            <div class="box">
+                <h3>🏆 Финал</h3>
+                <label>Победа:</label>
+                <input id="wt" value="Победа!">
+                <input id="wd" value="Ты супер!">
+                <input id="wi" placeholder="URL картинки Победы (или пусто)">
+
+                <label style="margin-top:10px">Проигрыш:</label>
+                <input id="lt" value="Ой!">
+                <input id="ld" value="Слишком много ошибок">
+                <input id="li" placeholder="URL картинки Проигрыша (или пусто)">
+                
+                <label style="margin-top:10px">Кнопка:</label>
+                <input id="rb" value="ЗАНОВО">
+            </div>
+
+            <div class="box">
+                <h3>⏳ Окно "Время вышло"</h3>
+                <input id="to_t" value="Время вышло!" placeholder="Заголовок">
+                <input id="to_d" value="Но ты можешь закончить." placeholder="Текст">
+                <input id="to_i" placeholder="URL картинки часов (или пусто)">
+            </div>
+
+            <div class="box">
+                <h3>❤️ Интерфейс</h3>
+                <label>Жизни (URL):</label><input type="text" id="lifeimg" placeholder="Сердечко">
+                
+                <label style="margin-top:10px">Иконка Таймера (URL):</label>
+                <input type="text" id="icon_time" placeholder="Часики (GIF)">
+                
+                <label>Иконка Счета (URL):</label>
+                <input type="text" id="icon_score" placeholder="Кубок (GIF)">
+
+                <label style="margin-top:10px">Всплывашки (Картинки):</label>
+                <div class="pair">
+                    <input id="winimg" placeholder="Успех (gif)">
+                    <input id="loseimg" placeholder="Ошибка (gif)">
+                </div>
+
+                <label>Цвет UI:</label><input type="color" id="pcolor" value="#007aff">
+            </div>
         </div>
-        <label>Эффект</label>
-        <select id="effect">
-            <option value="">Нет</option>
-            <option value="font-effect-neon">Неон</option>
-            <option value="font-effect-3d">3D</option>
-        </select>
-    </div>
 
-    <div class="box">
-        <h3>🎮 Игровой баланс</h3>
-        <div class="pair">
-            <div style="flex:1"><label>Пар в игре</label><input type="number" id="limit" value="2"></div>
-            <div style="flex:1"><label>Пустышек</label><input type="number" id="extra-count" value="2"></div>
+        <div id="tab-sounds" class="tab-content">
+            <div class="box">
+                <h3>🎵 Звуки (URL mp3)</h3>
+                <label>Клик</label><input type="text" id="s_click" placeholder="Стандарт">
+                <label>Верно</label><input type="text" id="s_ok" placeholder="Стандарт">
+                <label>Ошибка</label><input type="text" id="s_bad" placeholder="Стандарт">
+                <label>Победа</label><input type="text" id="s_win" placeholder="Стандарт">
+                <label>Проигрыш</label><input type="text" id="s_lose" placeholder="Стандарт">
+                <label>Время вышло</label><input type="text" id="s_timeout" placeholder="time.mp3 (Стандарт)">
+            </div>
         </div>
-        <label>Скорость</label>
-        <input type="range" id="speed" min="0" max="10" step="0.5" value="2">
     </div>
 
-    <div class="box">
-        <h3>🎵 Звуки (Опционально)</h3>
-        <label>Клик (URL mp3)</label><input type="text" id="s_click" placeholder="Пусто = Стандарт">
-        <label>Пара найдена (URL mp3)</label><input type="text" id="s_ok" placeholder="Пусто = Стандарт">
-        <label>Ошибка (URL mp3)</label><input type="text" id="s_bad" placeholder="Пусто = Стандарт">
-        <label>Победа (URL mp3)</label><input type="text" id="s_win" placeholder="Пусто = Стандарт">
-        <label>Проигрыш (URL mp3)</label><input type="text" id="s_lose" placeholder="Пусто = Стандарт">
+    <div class="footer">
+        <button class="btn-gen" onclick="update()">СГЕНЕРИРОВАТЬ ССЫЛКУ</button>
+        <textarea id="res" readonly placeholder="Код для Genially..."></textarea>
     </div>
-
-    <div class="box">
-        <h3>🖼 Интерфейс</h3>
-        <label>Жизнь (URL)</label><input type="text" id="lifeimg" placeholder="Пусто = Стандарт из кода">
-        <div class="pair"><input id="winimg" placeholder="Всплывашка Успех (или пусто)"><input id="loseimg" placeholder="Всплывашка Ошибка (или пусто)"></div>
-        <label>Цвет прогресса</label><input type="color" id="pcolor" value="#03dac6">
-    </div>
-
-    <div class="box" style="border-left: 3px solid #03dac6;">
-        <h3>🏆 Настройки Финала</h3>
-        <label>Победа: Заголовок / Текст / Картинка (URL)</label>
-        <input id="wt" value="Победа!">
-        <input id="wd" value="Ты супер!">
-        <input id="wi" placeholder="URL картинки или Пусто для стандарта">
-
-        <label style="margin-top:15px">Проигрыш: Заголовок / Текст / Картинка (URL)</label>
-        <input id="lt" value="Ой!">
-        <input id="ld" value="Попробуй еще раз">
-        <input id="li" placeholder="URL картинки или Пусто для стандарта">
-
-        <label>Текст кнопки перезапуска</label>
-        <input id="rb" value="ЗАНОВО">
-    </div>
-
-    <div class="box">
-        <h3>📝 База пар (Текст или Картинка URL)</h3>
-        <div id="p-cont">
-            <div class="pair"><input class="pa" placeholder="Текст или ссылка на картинку"><input class="pb" placeholder="Текст или ссылка на картинку"><button class="btn-del" onclick="this.parentElement.remove()">×</button></div>
-        </div>
-        <button onclick="addP()" style="margin-top:10px; border: 1px solid #03dac6; color: #03dac6;">+ Добавить в базу</button>
-    </div>
-
-    <button class="btn-gen" onclick="update()">ОБНОВИТЬ И ПОЛУЧИТЬ КОД</button>
-    <textarea id="res" readonly></textarea>
 </div>
-<div id="pre"><iframe id="ifr"></iframe></div>
+
+<div id="pre"><div class="preview-frame"><iframe id="ifr"></iframe></div></div>
 
 <script>
-    function addP() {
-        const d = document.createElement('div'); d.className = 'pair';
-        d.innerHTML = '<input class="pa" placeholder="Текст или URL картинки"><input class="pb" placeholder="Текст или URL картинки"><button class="btn-del" onclick="this.parentElement.remove()">×</button>';
+    function openTab(name) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        event.currentTarget.classList.add('active');
+        if(name === 'design') updPrev();
+    }
+    
+    function toggleTimerInput() {
+        const check = document.getElementById('use_timer');
+        document.getElementById('timer-set').style.display = check.checked ? 'block' : 'none';
+    }
+
+    function toggleLevelInput() {
+        const check = document.getElementById('campaign');
+        document.getElementById('level-set').style.display = check.checked ? 'block' : 'none';
+    }
+
+    function addP(valA = '', valB = '') {
+        const d = document.createElement('div'); d.className='pair';
+        d.innerHTML=`<input class="pa" value="${valA}" placeholder="Пара А"><input class="pb" value="${valB}" placeholder="Пара Б"><button class="btn-del" onclick="this.parentElement.remove()">×</button>`;
         document.getElementById('p-cont').appendChild(d);
     }
 
-    // Хелпер для конвертации hex в rgba
+    function bulkImport() {
+        const text = document.getElementById('bulk-text').value.trim();
+        if(!text) return;
+        const lines = text.split(/\n/);
+        lines.forEach(line => {
+            let parts = line.split('|');
+            if(parts.length < 2) parts = [line.trim(), ''];
+            addP(parts[0].trim(), parts[1] ? parts[1].trim() : '');
+        });
+        document.getElementById('bulk-text').value = '';
+    }
+
     function hexToRgba(hex, alpha) {
         let c;
         if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
@@ -141,69 +269,96 @@
         return hex;
     }
 
-    function update() {
-        let full = [];
-
-        document.querySelectorAll('#p-cont .pair').forEach(p => {
-            const a = p.querySelector('.pa')?.value.trim();
-            const b = p.querySelector('.pb')?.value.trim();
-            if(a && b) full.push({a, b});
-        });
-
-        const limit = parseInt(document.getElementById('limit').value) || full.length;
-        const extraCount = parseInt(document.getElementById('extra-count').value) || 0;
-
-        // Собираем цвет фона с прозрачностью
-        const bgHex = document.getElementById('bg_c_pick').value;
-        const bgOp = document.getElementById('bg_op').value;
-        const finalBg = hexToRgba(bgHex, bgOp);
-
-        // ✅ repo para.proba4
-        const url = "https://natashagodlevskaya16021995-ux.github.io/para.proba4/index.html";
-
-        const p = new URLSearchParams({
-            st_t: document.getElementById('st_t').value,
-            st_d: document.getElementById('st_d').value,
-            st_b: document.getElementById('st_b').value,
-            wt: document.getElementById('wt').value,
-            wd: document.getElementById('wd').value,
-            wi: document.getElementById('wi').value,
-            lt: document.getElementById('lt').value,
-            ld: document.getElementById('ld').value,
-            li: document.getElementById('li').value,
-            rb: document.getElementById('rb').value,
-
-            speed: document.getElementById('speed').value,
-            pcolor: document.getElementById('pcolor').value,
+    function updPrev() {
+        const card = document.getElementById('preview-card');
+        const text = document.getElementById('preview-text');
+        
+        const cSize = document.getElementById('csize').value;
+        const defBg = document.getElementById('def_bg').checked;
+        const customBg = document.getElementById('cimg').value;
+        const tx = document.getElementById('tx').value;
+        const ty = document.getElementById('ty').value;
+        
+        const fSize = document.getElementById('fsize').value;
+        const fColor = document.getElementById('fcolor').value;
+        const fontName = document.getElementById('font').value;
+        
+        card.style.width = cSize + 'px';
+        card.style.height = cSize + 'px';
+        
+        if (defBg) {
+            card.style.backgroundImage = "url('https://natashagodlevskaya16021995-ux.github.io/para.proba4/images/babochka.png')";
+            card.style.backgroundColor = 'transparent';
+            card.style.border = 'none';
+            card.style.boxShadow = 'none';
+        } else if (customBg) {
+            card.style.backgroundImage = `url('${customBg}')`;
+            card.style.backgroundColor = 'transparent';
+            card.style.border = 'none';
+            card.style.boxShadow = 'none';
+        } else {
+            const bgC = document.getElementById('bg_c_pick').value;
+            const bgOp = document.getElementById('bg_op').value;
+            const bC = document.getElementById('b_c').value;
+            const bW = document.getElementById('b_w').value;
             
-            // Настройки стиля
-            cimg: document.getElementById('cimg').value,
-            csize: document.getElementById('csize').value,
-            bg_c: finalBg,
-            b_c: document.getElementById('b_c').value,
-            b_w: document.getElementById('b_w').value,
-            b_r: document.getElementById('b_r').value,
+            card.style.backgroundImage = 'none';
+            card.style.backgroundColor = hexToRgba(bgC, bgOp);
+            card.style.border = `${bW}px solid ${bC}`;
+            card.style.boxShadow = '0 4px 10px rgba(0,0,0,0.1)';
+            card.style.borderRadius = '20px';
+        }
 
-            font: document.getElementById('font').value,
-            fsize: document.getElementById('fsize').value,
-            fcolor: document.getElementById('fcolor').value,
-            effect: document.getElementById('effect').value,
-            lifeimg: document.getElementById('lifeimg').value,
+        card.style.fontFamily = fontName;
+        card.style.fontSize = fSize.replace('px','') + 'px';
+        card.style.color = fColor;
+        
+        text.style.transform = `translate(${tx}px, ${ty}px)`;
+    }
+
+    setTimeout(updPrev, 500);
+    
+    function update() {
+        let full = []; document.querySelectorAll('#p-cont .pair').forEach(p => { const a=p.querySelector('.pa').value.trim(); const b=p.querySelector('.pb').value.trim(); if(a && b) full.push({a, b}); });
+        
+        const defBg = document.getElementById('def_bg').checked ? '1' : '0';
+        const useTimer = document.getElementById('use_timer').checked;
+        const campaign = document.getElementById('campaign').checked ? '1' : '0';
+        const timeVal = useTimer ? document.getElementById('time_val').value : '0';
+        const levelsVal = campaign === '1' ? document.getElementById('levels_count').value : '100';
+
+        const url = "https://natashagodlevskaya16021995-ux.github.io/para.proba4/index.html";
+        
+        const p = new URLSearchParams({
+            st_t: document.getElementById('st_t').value, st_d: document.getElementById('st_d').value, st_b: document.getElementById('st_b').value,
+            wt: document.getElementById('wt').value, wd: document.getElementById('wd').value, lt: document.getElementById('lt').value, ld: document.getElementById('ld').value, rb: document.getElementById('rb').value,
+            to_t: document.getElementById('to_t').value, to_d: document.getElementById('to_d').value, to_i: document.getElementById('to_i').value,
+            
+            wi: document.getElementById('wi').value,
+            li: document.getElementById('li').value,
             winimg: document.getElementById('winimg').value,
             loseimg: document.getElementById('loseimg').value,
+
+            speed: document.getElementById('speed').value, pcolor: document.getElementById('pcolor').value, 
+            cimg: document.getElementById('cimg').value, def_bg: defBg, csize: document.getElementById('csize').value,
+            bg_c: document.getElementById('bg_c_pick').value, bg_op: document.getElementById('bg_op').value, b_c: document.getElementById('b_c').value, b_w: document.getElementById('b_w').value,
+            font: document.getElementById('font').value, fsize: document.getElementById('fsize').value, fcolor: document.getElementById('fcolor').value, effect: document.getElementById('effect').value,
             
-            // Звуки
-            s_click: document.getElementById('s_click').value,
-            s_ok: document.getElementById('s_ok').value,
-            s_bad: document.getElementById('s_bad').value,
-            s_win: document.getElementById('s_win').value,
-            s_lose: document.getElementById('s_lose').value,
+            tx: document.getElementById('tx').value, ty: document.getElementById('ty').value,
 
-            pairs: JSON.stringify(full),
-            limit: String(limit),
-            extraCount: String(extraCount)
+            lifeimg: document.getElementById('lifeimg').value,
+            icon_time: document.getElementById('icon_time').value,
+            icon_score: document.getElementById('icon_score').value,
+
+            s_click: document.getElementById('s_click').value, s_ok: document.getElementById('s_ok').value, s_bad: document.getElementById('s_bad').value, s_win: document.getElementById('s_win').value,
+            s_timeout: document.getElementById('s_timeout').value,
+            
+            pairs: JSON.stringify(full), limit: document.getElementById('limit').value, extraCount: document.getElementById('extra-count').value,
+            time: timeVal,
+            campaign: campaign,
+            levels: levelsVal // Передаем кол-во уровней
         });
-
+        
         const finalUrl = url + "?" + p.toString();
         document.getElementById('ifr').src = finalUrl + "&t=" + Date.now();
         document.getElementById('res').value = `<iframe src="${finalUrl}" width="100%" height="600" style="border:none;" allowtransparency="true"></iframe>`;
