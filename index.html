@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Master Editor V34 - Custom Levels</title>
+    <title>Master Editor V35 - UI Update</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; margin: 0; display: flex; height: 100vh; background: #f2f2f7; color: #1c1c1e; }
         #ed { width: 450px; display: flex; flex-direction: column; background: #ffffff; border-right: 1px solid #d1d1d6; z-index: 10; box-shadow: 4px 0 15px rgba(0,0,0,0.03); }
@@ -31,9 +31,16 @@
         .footer { padding: 20px 25px; background: #fff; border-top: 1px solid #e5e5ea; }
         .btn-gen { background: linear-gradient(135deg, #007aff, #005ecb); color: white; font-weight: 600; font-size: 15px; cursor: pointer; height: 55px; border: none; width: 100%; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,122,255,0.3); }
         textarea#res { height: 60px; font-family: monospace; font-size: 11px; margin-top: 10px; border: none; background: #1c1c1e; color: #00c7be; padding: 10px; border-radius: 10px; width: 100%; box-sizing: border-box; }
-        #pre { flex-grow: 1; background: #e5e5ea; padding: 20px; display: flex; align-items: center; justify-content: center; }
+        #pre { flex-grow: 1; background: #e5e5ea; padding: 20px; display: flex; align-items: center; justify-content: center; position: relative;}
         .preview-frame { width: 100%; height: 100%; background: white; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 8px solid #333; position: relative; }
         iframe { width: 100%; height: 100%; border: none; }
+        
+        #warning-msg {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(255, 59, 48, 0.9); color: white; padding: 5px 15px; border-radius: 20px;
+            font-size: 10px; font-weight: bold; pointer-events: none; z-index: 100;
+            display: none;
+        }
 
         #live-preview-container {
             width: 100%; height: 180px;
@@ -52,12 +59,14 @@
 <div id="ed">
     <div class="header">
         <h1>Редактор Игры 🧩</h1>
-        <p>Настройка уровней</p>
+        <p>Настрой все детали</p>
     </div>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('content')">📝 Контент</button>
-        <button class="tab-btn" onclick="openTab('design')">🎨 Дизайн карточек</button> <button class="tab-btn" onclick="openTab('texts')">💬 Интерфейс</button> <button class="tab-btn" onclick="openTab('sounds')">🎵 Звуки</button>
+        <button class="tab-btn" onclick="openTab('design')">🎨 Дизайн карточек</button>
+        <button class="tab-btn" onclick="openTab('texts')">💬 Интерфейс</button>
+        <button class="tab-btn" onclick="openTab('sounds')">🎵 Звуки</button>
     </div>
 
     <div class="scroll-area">
@@ -65,21 +74,11 @@
             <div class="box">
                 <h3>📋 Массовая вставка</h3>
                 <p style="font-size:11px; color:#888; margin-top:0">Формат: Слово | Перевод</p>
-                <textarea id="bulk-text" style="height:100px" placeholder="Кот | Cat&#10;Собака | Dog"></textarea>
+                <textarea id="bulk-text" style="height:100px" placeholder="Кот | Cat&#10;7-6 | 1"></textarea>
                 <button class="btn-add" style="background:#34c759; border-color:#34c759; color:white; margin-top:10px" onclick="bulkImport()">📥 Вставить список</button>
             </div>
             <div class="box">
-                <h3>⏱ Настройки игры</h3>
-                <div class="check-wrap" onclick="let i=this.querySelector('input'); i.checked=!i.checked; toggleLevelInput()">
-                    <input type="checkbox" id="campaign">
-                    <label>📈 Режим Кампании (Уровни)</label>
-                </div>
-                
-                <div id="level-set" style="display:none; margin-top:10px;">
-                    <label>Количество уровней (Макс)</label>
-                    <input type="number" id="levels_count" value="5" placeholder="Например: 5">
-                </div>
-                
+                <h3>⏱ Таймер и Сложность</h3>
                 <div class="check-wrap" onclick="let i=this.querySelector('input'); i.checked=!i.checked; toggleTimerInput()">
                     <input type="checkbox" id="use_timer">
                     <label>Включить таймер</label>
@@ -88,9 +87,8 @@
                     <label>Время на игру (секунд)</label>
                     <input type="number" id="time_val" value="60">
                 </div>
-                
                 <div class="pair">
-                    <div style="flex:1"><label>Пар (Старт)</label><input type="number" id="limit" value="2"></div>
+                    <div style="flex:1"><label>Пар искать</label><input type="number" id="limit" value="3"></div>
                     <div style="flex:1"><label>Ловушек</label><input type="number" id="extra-count" value="2"></div>
                 </div>
                 <label>Скорость полета</label>
@@ -154,7 +152,8 @@
             <div class="box">
                 <h3>👋 Приветствие</h3>
                 <input type="text" id="st_t" value="Найди пары">
-                <textarea id="st_d" style="height:50px">Будь осторожен, есть лишние карточки.</textarea> <label>Кнопка</label><input type="text" id="st_b" value="ИГРАТЬ">
+                <textarea id="st_d" style="height:50px">Осторожно! Есть лишние карточки</textarea>
+                <label>Кнопка</label><input type="text" id="st_b" value="ИГРАТЬ">
             </div>
             
             <div class="box">
@@ -162,14 +161,10 @@
                 <label>Победа:</label>
                 <input id="wt" value="Победа!">
                 <input id="wd" value="Ты супер!">
-                <input id="wi" placeholder="URL картинки Победы (или пусто)">
-
-                <label style="margin-top:10px">Проигрыш:</label>
+                <input id="wi" placeholder="URL картинки Победы (или пусто)"> <label style="margin-top:10px">Проигрыш:</label>
                 <input id="lt" value="Ой!">
                 <input id="ld" value="Слишком много ошибок">
-                <input id="li" placeholder="URL картинки Проигрыша (или пусто)">
-                
-                <label style="margin-top:10px">Кнопка:</label>
+                <input id="li" placeholder="URL картинки Проигрыша (или пусто)"> <label style="margin-top:10px">Кнопка:</label>
                 <input id="rb" value="ЗАНОВО">
             </div>
 
@@ -184,14 +179,7 @@
                 <h3>❤️ Интерфейс</h3>
                 <label>Жизни (URL):</label><input type="text" id="lifeimg" placeholder="Сердечко">
                 
-                <label style="margin-top:10px">Иконка Таймера (URL):</label>
-                <input type="text" id="icon_time" placeholder="Часики (GIF)">
-                
-                <label>Иконка Счета (URL):</label>
-                <input type="text" id="icon_score" placeholder="Кубок (GIF)">
-
-                <label style="margin-top:10px">Всплывашки (Картинки):</label>
-                <div class="pair">
+                <label style="margin-top:10px">Всплывашки (Картинки):</label> <div class="pair">
                     <input id="winimg" placeholder="Успех (gif)">
                     <input id="loseimg" placeholder="Ошибка (gif)">
                 </div>
@@ -219,7 +207,10 @@
     </div>
 </div>
 
-<div id="pre"><div class="preview-frame"><iframe id="ifr"></iframe></div></div>
+<div id="pre">
+    <div id="warning-msg">ПРЕДПРОСМОТР ГРУЗИТСЯ С ИНТЕРНЕТА. ОБНОВИТЕ ФАЙЛ НА GITHUB!</div>
+    <div class="preview-frame"><iframe id="ifr"></iframe></div>
+</div>
 
 <script>
     function openTab(name) {
@@ -232,12 +223,8 @@
     
     function toggleTimerInput() {
         const check = document.getElementById('use_timer');
-        document.getElementById('timer-set').style.display = check.checked ? 'block' : 'none';
-    }
-
-    function toggleLevelInput() {
-        const check = document.getElementById('campaign');
-        document.getElementById('level-set').style.display = check.checked ? 'block' : 'none';
+        const box = document.getElementById('timer-set');
+        box.style.display = check.checked ? 'block' : 'none';
     }
 
     function addP(valA = '', valB = '') {
@@ -253,7 +240,10 @@
         lines.forEach(line => {
             let parts = line.split('|');
             if(parts.length < 2) parts = [line.trim(), ''];
-            addP(parts[0].trim(), parts[1] ? parts[1].trim() : '');
+            // Очистка от странных пробелов
+            const cleanA = parts[0].trim().replace(/\t/g,'');
+            const cleanB = parts[1] ? parts[1].trim().replace(/\t/g,'') : '';
+            addP(cleanA, cleanB);
         });
         document.getElementById('bulk-text').value = '';
     }
@@ -323,9 +313,7 @@
         
         const defBg = document.getElementById('def_bg').checked ? '1' : '0';
         const useTimer = document.getElementById('use_timer').checked;
-        const campaign = document.getElementById('campaign').checked ? '1' : '0';
         const timeVal = useTimer ? document.getElementById('time_val').value : '0';
-        const levelsVal = campaign === '1' ? document.getElementById('levels_count').value : '100';
 
         const url = "https://natashagodlevskaya16021995-ux.github.io/para.proba4/index.html";
         
@@ -346,22 +334,22 @@
             
             tx: document.getElementById('tx').value, ty: document.getElementById('ty').value,
 
-            lifeimg: document.getElementById('lifeimg').value,
-            icon_time: document.getElementById('icon_time').value,
-            icon_score: document.getElementById('icon_score').value,
-
-            s_click: document.getElementById('s_click').value, s_ok: document.getElementById('s_ok').value, s_bad: document.getElementById('s_bad').value, s_win: document.getElementById('s_win').value,
+            lifeimg: document.getElementById('lifeimg').value, s_click: document.getElementById('s_click').value, s_ok: document.getElementById('s_ok').value, s_bad: document.getElementById('s_bad').value, s_win: document.getElementById('s_win').value,
             s_timeout: document.getElementById('s_timeout').value,
             
             pairs: JSON.stringify(full), limit: document.getElementById('limit').value, extraCount: document.getElementById('extra-count').value,
-            time: timeVal,
-            campaign: campaign,
-            levels: levelsVal // Передаем кол-во уровней
+            time: timeVal 
         });
         
         const finalUrl = url + "?" + p.toString();
+        // Добавляем кэш-бастер, чтобы попытаться обойти кэш
         document.getElementById('ifr').src = finalUrl + "&t=" + Date.now();
         document.getElementById('res').value = `<iframe src="${finalUrl}" width="100%" height="600" style="border:none;" allowtransparency="true"></iframe>`;
+        
+        // Показываем предупреждение
+        const warn = document.getElementById('warning-msg');
+        warn.style.display = 'block';
+        setTimeout(() => warn.style.display = 'none', 5000);
     }
 </script>
 </body>
